@@ -137,8 +137,9 @@
   td.day-label {
     color: var(--text-dim);
     font-weight: 600;
-    width: 40px;
+    width: 36px;
     font-size: 12px;
+    padding-right: 2px;
   }
   td.day-label.today {
     color: var(--ruby-glow);
@@ -175,14 +176,14 @@
 
   .entry-row {
     display: grid;
-    grid-template-columns: 1.4fr 0.7fr 0.7fr 0.7fr auto;
-    gap: 5px;
+    grid-template-columns: 1.3fr 0.6fr 0.6fr 0.6fr 0.6fr auto;
+    gap: 4px;
     margin-bottom: 6px;
     align-items: center;
   }
   .entry-row input {
-    padding: 6px 7px;
-    font-size: 13px;
+    padding: 6px 6px;
+    font-size: 12px;
   }
   .btn-x {
     background: transparent;
@@ -216,8 +217,8 @@
 
   .entry-head {
     display: grid;
-    grid-template-columns: 1.4fr 0.7fr 0.7fr 0.7fr auto;
-    gap: 5px;
+    grid-template-columns: 1.3fr 0.6fr 0.6fr 0.6fr 0.6fr auto;
+    gap: 4px;
     margin-bottom: 6px;
     font-size: 10px;
     color: var(--gold);
@@ -229,8 +230,8 @@
 
   .week-row {
     display: grid;
-    grid-template-columns: 60px 1fr 1fr 1fr 1.3fr;
-    gap: 5px;
+    grid-template-columns: 50px 1fr 1fr 1fr 1fr;
+    gap: 4px;
     margin-bottom: 6px;
     align-items: center;
   }
@@ -244,8 +245,8 @@
 
   .week-head {
     display: grid;
-    grid-template-columns: 60px 1fr 1fr 1fr 1.3fr;
-    gap: 5px;
+    grid-template-columns: 50px 1fr 1fr 1fr 1fr;
+    gap: 4px;
     margin-bottom: 6px;
     font-size: 10px;
     color: var(--gold);
@@ -334,11 +335,12 @@
 
   @media (max-width: 380px) {
     .entry-row, .entry-head {
-      grid-template-columns: 1.2fr 0.7fr 0.7fr 0.7fr auto;
-      gap: 4px;
+      grid-template-columns: 1.1fr 0.6fr 0.6fr 0.6fr 0.6fr auto;
+      gap: 3px;
     }
     .week-row, .week-head {
-      grid-template-columns: 50px 1fr 1fr 1fr 1.2fr;
+      grid-template-columns: 40px 1fr 1fr 1fr 1fr;
+      gap: 3px;
     }
   }
 </style>
@@ -362,17 +364,17 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 let state = {
   goal: "",
   week: {
-    Mon: { cals: "", exercise: "" },
-    Tue: { cals: "", exercise: "" },
-    Wed: { cals: "", exercise: "" },
-    Thu: { cals: "", exercise: "" },
-    Fri: { cals: "", exercise: "" },
-    Sat: { cals: "", exercise: "" },
-    Sun: { cals: "", exercise: "" },
+    Mon: { cals: "", protein: "", carbs: "", water: "" },
+    Tue: { cals: "", protein: "", carbs: "", water: "" },
+    Wed: { cals: "", protein: "", carbs: "", water: "" },
+    Thu: { cals: "", protein: "", carbs: "", water: "" },
+    Fri: { cals: "", protein: "", carbs: "", water: "" },
+    Sat: { cals: "", protein: "", carbs: "", water: "" },
+    Sun: { cals: "", protein: "", carbs: "", water: "" },
   },
-  consumed: [],   // [{desc, cals, protein, carbs}]
-  projected: [],  // [{desc, cals, protein, carbs}]
-  weeks: [],      // [{cals, protein, carbs, exercise}]
+  consumed: [],   // [{desc, cals, protein, carbs, water}]
+  projected: [],  // [{desc, cals, protein, carbs, water}]
+  weeks: [],      // [{cals, protein, carbs, water}]
 };
 
 let saveTimer = null;
@@ -401,7 +403,7 @@ async function loadData() {
 function ensureWeeksInitialized() {
   if (state.weeks.length === 0) {
     for (let i = 0; i < 12; i++) {
-      state.weeks.push({ cals: "", protein: "", carbs: "", exercise: "" });
+      state.weeks.push({ cals: "", protein: "", carbs: "", water: "" });
     }
   }
 }
@@ -447,8 +449,9 @@ function sumEntries(arr) {
     acc.cals += Number(e.cals) || 0;
     acc.protein += Number(e.protein) || 0;
     acc.carbs += Number(e.carbs) || 0;
+    acc.water += Number(e.water) || 0;
     return acc;
-  }, { cals: 0, protein: 0, carbs: 0 });
+  }, { cals: 0, protein: 0, carbs: 0, water: 0 });
 }
 
 function el(tag, attrs = {}, children = []) {
@@ -494,8 +497,10 @@ function render() {
   const weekTable = el("table");
   const theadW = el("thead", {}, el("tr", {}, [
     el("th", {}, "Day"),
-    el("th", {}, "Calories"),
-    el("th", {}, "Exercise"),
+    el("th", {}, "Cals"),
+    el("th", {}, "Prot"),
+    el("th", {}, "Carb"),
+    el("th", {}, "Water"),
   ]));
   weekTable.appendChild(theadW);
   const tbodyW = el("tbody");
@@ -508,13 +513,25 @@ function render() {
       value: state.week[day].cals,
       oninput: (e) => { state.week[day].cals = e.target.value; queueSave(); }
     });
-    const exInput = el("input", {
-      type: "text", placeholder: "e.g. 60min jog",
-      value: state.week[day].exercise,
-      oninput: (e) => { state.week[day].exercise = e.target.value; queueSave(); }
+    const proteinInput = el("input", {
+      type: "number", inputmode: "numeric", placeholder: "g",
+      value: state.week[day].protein,
+      oninput: (e) => { state.week[day].protein = e.target.value; queueSave(); }
+    });
+    const carbsInput = el("input", {
+      type: "number", inputmode: "numeric", placeholder: "g",
+      value: state.week[day].carbs,
+      oninput: (e) => { state.week[day].carbs = e.target.value; queueSave(); }
+    });
+    const waterInput = el("input", {
+      type: "number", inputmode: "numeric", placeholder: "oz",
+      value: state.week[day].water,
+      oninput: (e) => { state.week[day].water = e.target.value; queueSave(); }
     });
     tr.appendChild(el("td", {}, calInput));
-    tr.appendChild(el("td", {}, exInput));
+    tr.appendChild(el("td", {}, proteinInput));
+    tr.appendChild(el("td", {}, carbsInput));
+    tr.appendChild(el("td", {}, waterInput));
     tbodyW.appendChild(tr);
   });
   weekTable.appendChild(tbodyW);
@@ -547,7 +564,7 @@ function render() {
     el("span", {}, "Cals"),
     el("span", {}, "Prot"),
     el("span", {}, "Carb"),
-    el("span", {}, "Exercise"),
+    el("span", {}, "Water"),
   ]);
   weeksPanel.appendChild(head);
 
@@ -570,9 +587,9 @@ function render() {
         oninput: (e) => { state.weeks[i].carbs = e.target.value; queueSave(); }
       }),
       el("input", {
-        type: "text", placeholder: "summary",
-        value: w.exercise,
-        oninput: (e) => { state.weeks[i].exercise = e.target.value; queueSave(); }
+        type: "number", inputmode: "numeric", placeholder: "oz",
+        value: w.water,
+        oninput: (e) => { state.weeks[i].water = e.target.value; queueSave(); }
       }),
     ]);
     weeksPanel.appendChild(row);
@@ -581,7 +598,7 @@ function render() {
   const addWeekBtn = el("button", {
     class: "btn-add",
     onclick: () => {
-      state.weeks.push({ cals: "", protein: "", carbs: "", exercise: "" });
+      state.weeks.push({ cals: "", protein: "", carbs: "" });
       queueSave();
       render();
     }
@@ -625,8 +642,8 @@ function renderEntryPanel({ title, entries, variant, onChange }) {
     el("div", { class: "val" }, totals.carbs + "g"),
   ]));
   totalsBar.appendChild(el("div", { class: "stat" }, [
-    el("div", { class: "label" }, "Items"),
-    el("div", { class: "val" }, String(entries.length)),
+    el("div", { class: "label" }, "Water"),
+    el("div", { class: "val" }, totals.water + "oz"),
   ]));
   panel.appendChild(totalsBar);
 
@@ -636,6 +653,7 @@ function renderEntryPanel({ title, entries, variant, onChange }) {
     el("span", {}, "Cals"),
     el("span", {}, "Prot"),
     el("span", {}, "Carb"),
+    el("span", {}, "Water"),
     el("span", {}, ""),
   ]);
   panel.appendChild(head);
@@ -663,6 +681,11 @@ function renderEntryPanel({ title, entries, variant, onChange }) {
         value: entry.carbs,
         oninput: (e) => { entry.carbs = e.target.value; onChange(); }
       }),
+      el("input", {
+        type: "number", inputmode: "numeric", placeholder: "oz",
+        value: entry.water,
+        oninput: (e) => { entry.water = e.target.value; onChange(); }
+      }),
       el("button", {
         class: "btn-x",
         onclick: () => {
@@ -679,7 +702,7 @@ function renderEntryPanel({ title, entries, variant, onChange }) {
   const addBtn = el("button", {
     class: "btn-add",
     onclick: () => {
-      entries.push({ desc: "", cals: "", protein: "", carbs: "" });
+      entries.push({ desc: "", cals: "", protein: "", carbs: "", water: "" });
       queueSave();
       render();
     }
@@ -701,7 +724,7 @@ function renderTotals() {
       vals[0].textContent = String(totals.cals);
       vals[1].textContent = totals.protein + "g";
       vals[2].textContent = totals.carbs + "g";
-      vals[3].textContent = String(entries.length);
+      vals[3].textContent = totals.water + "oz";
     }
   });
 }
@@ -718,8 +741,8 @@ function resetDay() {
 }
 
 function resetWeek() {
-  if (!confirm("Clear this week's daily calorie/exercise table?")) return;
-  DAYS.forEach(d => { state.week[d] = { cals: "", exercise: "" }; });
+  if (!confirm("Clear this week's daily table?")) return;
+  DAYS.forEach(d => { state.week[d] = { cals: "", protein: "", carbs: "" }; });
   queueSave();
   render();
 }
