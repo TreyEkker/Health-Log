@@ -389,7 +389,7 @@ async function loadData() {
       }
     } else {
       // Fallback for non-artifact environments (won't persist across sessions but works in-tab)
-      const raw = sessionStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) state = { ...state, ...JSON.parse(raw) };
     }
   } catch (e) {
@@ -413,7 +413,7 @@ async function saveData() {
     if (window.storage) {
       await window.storage.set(STORAGE_KEY, payload);
     } else {
-      sessionStorage.setItem(STORAGE_KEY, payload);
+      localStorage.setItem(STORAGE_KEY, payload);
     }
     indicator.classList.add("show");
     setTimeout(() => indicator.classList.remove("show"), 900);
