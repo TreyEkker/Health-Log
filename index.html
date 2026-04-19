@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Nutrition" />
+<meta name="theme-color" content="#0c0a09" />
+<title>Nutrition Log</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230c0a09'/><text x='50' y='68' font-size='58' text-anchor='middle' fill='%23d4af37' font-family='Georgia'>N</text></svg>" />
+<style>
+  :root {
+    --bg: #0c0a09;
+    --bg-2: #15110f;
+    --panel: #1c1714;
+    --panel-2: #241d19;
+    --border: #3a2f28;
+    --border-soft: #2a2320;
+    --text: #f5efe6;
+    --text-dim: #a89b8a;
+    --gold: #d4af37;
+    --gold-soft: #b8962e;
+    --ruby: #b11226;
+    --ruby-soft: #8a0d1e;
+    --ruby-glow: #e11d3a;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  body {
+    background:
+      radial-gradient(1200px 400px at 50% -200px, rgba(212,175,55,0.08), transparent 60%),
+      radial-gradient(800px 300px at 100% 100%, rgba(177,18,38,0.06), transparent 60%),
+      var(--bg);
+    padding: 18px 14px 60px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 26px;
+    margin: 0 0 4px;
+    color: var(--gold);
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+  .sub {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    margin-bottom: 18px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .panel {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+  }
+  .panel h2 {
+    font-family: Georgia, serif;
+    font-size: 16px;
+    margin: 0 0 10px;
+    color: var(--gold);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel h2::before {
+    content: "";
+    width: 6px; height: 6px;
+    background: var(--ruby);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--ruby-glow);
+  }
+
+  textarea, input, select {
+    width: 100%;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  textarea:focus, input:focus, select:focus {
+    border-color: var(--gold-soft);
+  }
+  textarea { resize: vertical; min-height: 50px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    border-bottom: 1px solid var(--border-soft);
+    padding: 6px 4px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  th {
+    color: var(--gold);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  td input {
+    padding: 5px 6px;
+    font-size: 13px;
+  }
+  td.day-label {
+    color: var(--text-dim);
+    font-weight: 600;
+    width: 40px;
+    font-size: 12px;
+  }
+  td.day-label.today {
+    color: var(--ruby-glow);
+  }
+
+  .totals-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+  }
+  .totals-bar .stat {
+    text-align: center;
+  }
+  .totals-bar .stat .label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .totals-bar .stat .val {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gold);
+    font-family: Georgia, serif;
+  }
+  .totals-bar.projected .stat .val {
+    color: var(--ruby-glow);
+  }
+
+  .entry-row {
+    display: grid;
+    grid-template-columns: 1.4fr 0.7fr 0.7fr 0.7fr auto;
+    gap: 5px;
+    margin-bottom: 6px;
+    align-items: center;
+  }
+  .entry-row input {
+    padding: 6px 7px;
+    font-size: 13px;
+  }
+  .btn-x {
+    background: transparent;
+    border: 1px solid var(--ruby-soft);
+    color: var(--ruby-glow);
+    border-radius: 6px;
+    width: 26px; height: 26px;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-x:active { background: var(--ruby-soft); color: white; }
+
+  .btn-add {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--gold-soft);
+    color: var(--gold);
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 4px;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+  }
+  .btn-add:active { background: rgba(212,175,55,0.1); }
+
+  .entry-head {
+    display: grid;
+    grid-template-columns: 1.4fr 0.7fr 0.7fr 0.7fr auto;
+    gap: 5px;
+    margin-bottom: 6px;
+    font-size: 10px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .entry-head span:last-child { width: 26px; }
+
+  .week-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr 1fr 1.3fr;
+    gap: 5px;
+    margin-bottom: 6px;
+    align-items: center;
+  }
+  .week-row .wk-label {
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: Georgia, serif;
+  }
+  .week-row input { padding: 6px 7px; font-size: 12px; }
+
+  .week-head {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr 1fr 1.3fr;
+    gap: 5px;
+    margin-bottom: 6px;
+    font-size: 10px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  .section-divider {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 10px 0;
+    position: relative;
+  }
+  .section-divider::before, .section-divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-soft), transparent);
+  }
+  .section-divider::before { left: 0; }
+  .section-divider::after { right: 0; }
+
+  .date-pill {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    margin-bottom: 10px;
+    padding: 4px 10px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    display: inline-block;
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .footer-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .footer-actions button {
+    flex: 1;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 9px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .footer-actions button:active { background: var(--border); color: var(--gold); }
+
+  .save-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(212,175,55,0.9);
+    color: #0c0a09;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .save-indicator.show { opacity: 1; }
+
+  .loading {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 40px 20px;
+    font-style: italic;
+  }
+
+  @media (max-width: 380px) {
+    .entry-row, .entry-head {
+      grid-template-columns: 1.2fr 0.7fr 0.7fr 0.7fr auto;
+      gap: 4px;
+    }
+    .week-row, .week-head {
+      grid-template-columns: 50px 1fr 1fr 1fr 1.2fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="save-indicator" id="saveIndicator">Saved</div>
+
+<h1>Nutrition Log</h1>
+<div class="sub">— Discipline & Fire —</div>
+
+<div id="app" class="loading">Loading your data…</div>
+
+<script>
+// =========================
+// STATE
+// =========================
+const STORAGE_KEY = "nutrition-tracker-data";
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+let state = {
+  goal: "",
+  week: {
+    Mon: { cals: "", exercise: "" },
+    Tue: { cals: "", exercise: "" },
+    Wed: { cals: "", exercise: "" },
+    Thu: { cals: "", exercise: "" },
+    Fri: { cals: "", exercise: "" },
+    Sat: { cals: "", exercise: "" },
+    Sun: { cals: "", exercise: "" },
+  },
+  consumed: [],   // [{desc, cals, protein, carbs}]
+  projected: [],  // [{desc, cals, protein, carbs}]
+  weeks: [],      // [{cals, protein, carbs, exercise}]
+};
+
+let saveTimer = null;
+
+// =========================
+// PERSISTENCE
+// =========================
+async function loadData() {
+  try {
+    if (window.storage) {
+      const result = await window.storage.get(STORAGE_KEY);
+      if (result && result.value) {
+        state = { ...state, ...JSON.parse(result.value) };
+      }
+    } else {
+      // Fallback for non-artifact environments (won't persist across sessions but works in-tab)
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (raw) state = { ...state, ...JSON.parse(raw) };
+    }
+  } catch (e) {
+    console.log("No saved data yet:", e);
+  }
+  ensureWeeksInitialized();
+}
+
+function ensureWeeksInitialized() {
+  if (state.weeks.length === 0) {
+    for (let i = 0; i < 12; i++) {
+      state.weeks.push({ cals: "", protein: "", carbs: "", exercise: "" });
+    }
+  }
+}
+
+async function saveData() {
+  const indicator = document.getElementById("saveIndicator");
+  try {
+    const payload = JSON.stringify(state);
+    if (window.storage) {
+      await window.storage.set(STORAGE_KEY, payload);
+    } else {
+      sessionStorage.setItem(STORAGE_KEY, payload);
+    }
+    indicator.classList.add("show");
+    setTimeout(() => indicator.classList.remove("show"), 900);
+  } catch (e) {
+    console.error("Save failed:", e);
+  }
+}
+
+function queueSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveData, 400);
+}
+
+// =========================
+// HELPERS
+// =========================
+function todayDayName() {
+  const d = new Date();
+  const idx = (d.getDay() + 6) % 7; // Monday = 0
+  return DAYS[idx];
+}
+
+function todayString() {
+  return new Date().toLocaleDateString(undefined, {
+    weekday: "long", month: "long", day: "numeric"
+  });
+}
+
+function sumEntries(arr) {
+  return arr.reduce((acc, e) => {
+    acc.cals += Number(e.cals) || 0;
+    acc.protein += Number(e.protein) || 0;
+    acc.carbs += Number(e.carbs) || 0;
+    return acc;
+  }, { cals: 0, protein: 0, carbs: 0 });
+}
+
+function el(tag, attrs = {}, children = []) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") node.className = v;
+    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+    else if (k === "value") node.value = v;
+    else node.setAttribute(k, v);
+  }
+  (Array.isArray(children) ? children : [children]).forEach(c => {
+    if (c == null) return;
+    node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  });
+  return node;
+}
+
+// =========================
+// RENDER
+// =========================
+function render() {
+  const app = document.getElementById("app");
+  app.className = "";
+  app.innerHTML = "";
+
+  // ---- Goal panel ----
+  const goalPanel = el("div", { class: "panel" });
+  goalPanel.appendChild(el("h2", {}, "Yearly Goal"));
+  const goalInput = el("textarea", {
+    placeholder: "Write your 1–2 sentence goal for the year…",
+    oninput: (e) => { state.goal = e.target.value; queueSave(); }
+  });
+  goalInput.value = state.goal;
+  goalPanel.appendChild(goalInput);
+  app.appendChild(goalPanel);
+
+  // ---- Today date pill ----
+  app.appendChild(el("div", { class: "date-pill" }, todayString()));
+
+  // ---- Weekly table ----
+  const weekPanel = el("div", { class: "panel" });
+  weekPanel.appendChild(el("h2", {}, "This Week"));
+  const weekTable = el("table");
+  const theadW = el("thead", {}, el("tr", {}, [
+    el("th", {}, "Day"),
+    el("th", {}, "Calories"),
+    el("th", {}, "Exercise"),
+  ]));
+  weekTable.appendChild(theadW);
+  const tbodyW = el("tbody");
+  const today = todayDayName();
+  DAYS.forEach(day => {
+    const tr = el("tr");
+    tr.appendChild(el("td", { class: "day-label" + (day === today ? " today" : "") }, day));
+    const calInput = el("input", {
+      type: "number", inputmode: "numeric", placeholder: "–",
+      value: state.week[day].cals,
+      oninput: (e) => { state.week[day].cals = e.target.value; queueSave(); }
+    });
+    const exInput = el("input", {
+      type: "text", placeholder: "e.g. 60min jog",
+      value: state.week[day].exercise,
+      oninput: (e) => { state.week[day].exercise = e.target.value; queueSave(); }
+    });
+    tr.appendChild(el("td", {}, calInput));
+    tr.appendChild(el("td", {}, exInput));
+    tbodyW.appendChild(tr);
+  });
+  weekTable.appendChild(tbodyW);
+  weekPanel.appendChild(weekTable);
+  app.appendChild(weekPanel);
+
+  // ---- Consumed log ----
+  app.appendChild(renderEntryPanel({
+    title: "Consumed Today",
+    entries: state.consumed,
+    variant: "consumed",
+    onChange: () => { queueSave(); renderTotals(); }
+  }));
+
+  app.appendChild(el("div", { class: "section-divider" }, "The Rest of the Day"));
+
+  // ---- Projected log ----
+  app.appendChild(renderEntryPanel({
+    title: "Planned Remaining",
+    entries: state.projected,
+    variant: "projected",
+    onChange: () => { queueSave(); renderTotals(); }
+  }));
+
+  // ---- Weekly summary ----
+  const weeksPanel = el("div", { class: "panel" });
+  weeksPanel.appendChild(el("h2", {}, "Weekly Totals"));
+  const head = el("div", { class: "week-head" }, [
+    el("span", {}, "Week"),
+    el("span", {}, "Cals"),
+    el("span", {}, "Prot"),
+    el("span", {}, "Carb"),
+    el("span", {}, "Exercise"),
+  ]);
+  weeksPanel.appendChild(head);
+
+  state.weeks.forEach((w, i) => {
+    const row = el("div", { class: "week-row" }, [
+      el("div", { class: "wk-label" }, "Wk " + (i + 1)),
+      el("input", {
+        type: "number", inputmode: "numeric", placeholder: "cal",
+        value: w.cals,
+        oninput: (e) => { state.weeks[i].cals = e.target.value; queueSave(); }
+      }),
+      el("input", {
+        type: "number", inputmode: "numeric", placeholder: "g",
+        value: w.protein,
+        oninput: (e) => { state.weeks[i].protein = e.target.value; queueSave(); }
+      }),
+      el("input", {
+        type: "number", inputmode: "numeric", placeholder: "g",
+        value: w.carbs,
+        oninput: (e) => { state.weeks[i].carbs = e.target.value; queueSave(); }
+      }),
+      el("input", {
+        type: "text", placeholder: "summary",
+        value: w.exercise,
+        oninput: (e) => { state.weeks[i].exercise = e.target.value; queueSave(); }
+      }),
+    ]);
+    weeksPanel.appendChild(row);
+  });
+
+  const addWeekBtn = el("button", {
+    class: "btn-add",
+    onclick: () => {
+      state.weeks.push({ cals: "", protein: "", carbs: "", exercise: "" });
+      queueSave();
+      render();
+    }
+  }, "+ Add Week");
+  weeksPanel.appendChild(addWeekBtn);
+  app.appendChild(weeksPanel);
+
+  // ---- Footer actions ----
+  const footer = el("div", { class: "footer-actions" }, [
+    el("button", {
+      onclick: resetDay
+    }, "Reset Day"),
+    el("button", {
+      onclick: resetWeek
+    }, "Reset Week"),
+    el("button", {
+      onclick: exportData
+    }, "Export"),
+  ]);
+  app.appendChild(footer);
+}
+
+function renderEntryPanel({ title, entries, variant, onChange }) {
+  const panel = el("div", { class: "panel" });
+  panel.appendChild(el("h2", {}, title));
+
+  // Totals bar at top
+  const totals = sumEntries(entries);
+  const totalsBar = el("div", { class: "totals-bar" + (variant === "projected" ? " projected" : "") });
+  totalsBar.id = "totals-" + variant;
+  totalsBar.appendChild(el("div", { class: "stat" }, [
+    el("div", { class: "label" }, "Cals"),
+    el("div", { class: "val" }, String(totals.cals)),
+  ]));
+  totalsBar.appendChild(el("div", { class: "stat" }, [
+    el("div", { class: "label" }, "Protein"),
+    el("div", { class: "val" }, totals.protein + "g"),
+  ]));
+  totalsBar.appendChild(el("div", { class: "stat" }, [
+    el("div", { class: "label" }, "Carbs"),
+    el("div", { class: "val" }, totals.carbs + "g"),
+  ]));
+  totalsBar.appendChild(el("div", { class: "stat" }, [
+    el("div", { class: "label" }, "Items"),
+    el("div", { class: "val" }, String(entries.length)),
+  ]));
+  panel.appendChild(totalsBar);
+
+  // Column headers
+  const head = el("div", { class: "entry-head" }, [
+    el("span", {}, "Item"),
+    el("span", {}, "Cals"),
+    el("span", {}, "Prot"),
+    el("span", {}, "Carb"),
+    el("span", {}, ""),
+  ]);
+  panel.appendChild(head);
+
+  // Entry rows
+  entries.forEach((entry, i) => {
+    const row = el("div", { class: "entry-row" }, [
+      el("input", {
+        type: "text", placeholder: "meal / snack",
+        value: entry.desc,
+        oninput: (e) => { entry.desc = e.target.value; onChange(); }
+      }),
+      el("input", {
+        type: "number", inputmode: "numeric", placeholder: "cal",
+        value: entry.cals,
+        oninput: (e) => { entry.cals = e.target.value; onChange(); }
+      }),
+      el("input", {
+        type: "number", inputmode: "numeric", placeholder: "g",
+        value: entry.protein,
+        oninput: (e) => { entry.protein = e.target.value; onChange(); }
+      }),
+      el("input", {
+        type: "number", inputmode: "numeric", placeholder: "g",
+        value: entry.carbs,
+        oninput: (e) => { entry.carbs = e.target.value; onChange(); }
+      }),
+      el("button", {
+        class: "btn-x",
+        onclick: () => {
+          entries.splice(i, 1);
+          queueSave();
+          render();
+        }
+      }, "×"),
+    ]);
+    panel.appendChild(row);
+  });
+
+  // Add button
+  const addBtn = el("button", {
+    class: "btn-add",
+    onclick: () => {
+      entries.push({ desc: "", cals: "", protein: "", carbs: "" });
+      queueSave();
+      render();
+    }
+  }, "+ Add Entry");
+  panel.appendChild(addBtn);
+
+  return panel;
+}
+
+function renderTotals() {
+  // Rebuild just the totals bars without full re-render (keeps focus in inputs)
+  ["consumed", "projected"].forEach(variant => {
+    const entries = state[variant];
+    const totals = sumEntries(entries);
+    const bar = document.getElementById("totals-" + variant);
+    if (!bar) return;
+    const vals = bar.querySelectorAll(".val");
+    if (vals.length >= 4) {
+      vals[0].textContent = String(totals.cals);
+      vals[1].textContent = totals.protein + "g";
+      vals[2].textContent = totals.carbs + "g";
+      vals[3].textContent = String(entries.length);
+    }
+  });
+}
+
+// =========================
+// ACTIONS
+// =========================
+function resetDay() {
+  if (!confirm("Clear today's consumed and planned logs?")) return;
+  state.consumed = [];
+  state.projected = [];
+  queueSave();
+  render();
+}
+
+function resetWeek() {
+  if (!confirm("Clear this week's daily calorie/exercise table?")) return;
+  DAYS.forEach(d => { state.week[d] = { cals: "", exercise: "" }; });
+  queueSave();
+  render();
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "nutrition-log-" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// =========================
+// INIT
+// =========================
+(async function init() {
+  await loadData();
+  render();
+})();
+</script>
+</body>
+</html>
